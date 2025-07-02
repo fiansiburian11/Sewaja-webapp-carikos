@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PendingPembayaran {
+  id          String   @id @default(cuid())
+  namaLengkap String
+  email       String   @unique
+  noWhatsapp  String
+  password    String
+  snapToken   String
+  orderId     String   @unique // 👉 digunakan untuk identifikasi pembayaran
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+}
+
+model User {
+  id          String   @id @default(cuid())
+  namaLengkap String
+  email       String   @unique
+  password    String
+  noWhatsapp  String
+  createdAt   DateTime @default(now())
+
+  kosan       Kosan[]
+}
+
+model Kosan {
+  id             String     @id @default(cuid())
+  nama           String
+  alamat         String
+  kecamatan      Kecamatan
+  hargaPerBulan  Int
+  deskripsi      String
+  fotoUrls       String[]
+  tersedia       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+
+  pemilikId      String
+  pemilik        User       @relation(fields: [pemilikId], references: [id])
+}
+
+enum Kecamatan {
+  BUKIT_RAYA
+  LIMA_PULUH
+  MARPOYAN_DAMAI
+  PAYUNG_SEKAKI
+  PEKANBARU_KOTA
+  SAIL
+  SENAPELAN
+  SUKAJADI
+  TENAYAN_RAYA
+  BINAWIDYA
+  KULIM
+  RUMBAI_BARAT
+  RUMBAI
+  RUMBAI_TIMUR
+  TUAHMADANI
+}
