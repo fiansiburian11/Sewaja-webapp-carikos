@@ -1,0 +1,54 @@
+// app/api/(pemilik)/kosan/[id]/PATCH.ts
+import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
+import { type NextRequest, NextResponse } from "next/server";
+
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const token = req.cookies.get("token")?.value;
+
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    const userId = decoded.id;
+
+    const kosan = await prisma.kosan.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!kosan) {
+      return NextResponse.json({ error: "Kosan tidak ditemukan" }, { status: 404 });
+    }
+
+    if (kosan.pemilikId !== userId) {
+      return NextResponse.json({ error: "Kamu tidak berhak mengedit kosan ini" }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const { nama, alamat, kecamatan, hargaPerBulan, deskripsi, fotoUrls, tersedia } = body;
+
+    if (!nama || !alamat || !kecamatan || !hargaPerBulan || !deskripsi) {
+      return NextResponse.json({ error: "Semua field wajib diisi" }, { status: 400 });
+    }
+
+    const updated = await prisma.kosan.update({
+      where: { id: params.id },
+      data: {
+        nama,
+        alamat,
+        kecamatan,
+        hargaPerBulan: Number(hargaPerBulan),
+        deskripsi,
+        fotoUrls: fotoUrls || [],
+        tersedia,
+      },
+    });
+
+    return NextResponse.json(updated, { status: 200 });
+  } catch (err) {
+    console.error("Update kosan error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
