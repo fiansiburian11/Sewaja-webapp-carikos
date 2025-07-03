@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, LogOut, Phone, Save, User, X } from "lucide-react";
+import { ChevronDown, House, LogOut, Phone, Save, User, X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -196,6 +197,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                   {/* Menu Items */}
                   <div className="py-1">
+                    <Link href="/" className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      <House className="w-4 h-4" />
+                      Beranda
+                    </Link>
                     <button onClick={openWhatsAppModal} className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                       <Phone className="w-4 h-4" />
                       Update Nomor WhatsApp
