@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import { type NextRequest, NextResponse } from "next/server";
 
-
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   const token = req.cookies.get("token")?.value;
 
   if (!token) {
@@ -33,7 +33,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   const token = req.cookies.get("token")?.value;
 
   if (!token) {
@@ -65,8 +66,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 }
 
-
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   const token = req.cookies.get("token")?.value;
 
   if (!token) {
