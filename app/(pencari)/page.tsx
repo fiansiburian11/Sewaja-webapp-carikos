@@ -213,7 +213,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent mb-4">SewaJa</h3>
+              <Image width={50} height={50} src="/logosewaja.png" alt="Logo Sewaja" className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent mb-4" />
               <p className="text-gray-400 mb-4">Platform pencarian kos terbesar di Pekanbaru dengan berbagai pilihan kosan berkualitas.</p>
               <div className="flex space-x-4">
                 <Link href="#" className="text-gray-400 hover:text-white transition-colors">
