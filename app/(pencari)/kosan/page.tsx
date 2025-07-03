@@ -1,4 +1,5 @@
 "use client";
+import WhatsAppButton from "@/components/wabutton";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -16,6 +17,16 @@ interface Kosan {
   createdAt: string;
 }
 
+interface ApiResponse {
+  data: Kosan[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+}
+
 // Daftar kecamatan yang tersedia
 const KECAMATAN_OPTIONS = ["BUKIT_RAYA", "LIMA_PULUH", "MARPOYAN_DAMAI", "PAYUNG_SEKAKI", "PEKANBARU_KOTA", "SAIL", "SENAPELAN", "SUKAJADI", "TENAYAN_RAYA", "BINAWIDYA", "KULIM", "RUMBAI_BARAT", "RUMBAI", "RUMBAI_TIMUR", "TUAHMADANI"];
 
@@ -23,7 +34,13 @@ const KECAMATAN_OPTIONS = ["BUKIT_RAYA", "LIMA_PULUH", "MARPOYAN_DAMAI", "PAYUNG
 type SortOption = "default" | "harga-asc" | "harga-desc" | "createdAt-desc";
 
 const KosanPage = () => {
-  const [filteredKosan, setFilteredKosan] = useState<Kosan[]>([]);
+  const [kosanData, setKosanData] = useState<Kosan[]>([]);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    limit: 5,
+    offset: 0,
+    hasMore: false,
+  });
 
   // State untuk filter
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,6 +52,11 @@ const KosanPage = () => {
   // State UI
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Fungsi untuk toggle kecamatan
+  const toggleKecamatan = (kecamatan: string) => {
+    setSelectedKecamatan((prev) => (prev.includes(kecamatan) ? prev.filter((k) => k !== kecamatan) : [...prev, kecamatan]));
+  };
 
   // Fetch data dari API
   useEffect(() => {
@@ -57,10 +79,19 @@ const KosanPage = () => {
           params.append("sortOrder", sortOrder);
         }
 
-        const response = await fetch(`/api/datakos?${params.toString()}`);
-        const data = await response.json();
+        // Tambahkan parameter paginasi
+        params.append("limit", pagination.limit.toString());
+        params.append("offset", pagination.offset.toString());
 
-        setFilteredKosan(data);
+        const response = await fetch(`/api/datakos?${params.toString()}`);
+        const data: ApiResponse = await response.json();
+
+        setKosanData(data.data);
+        setPagination({
+          ...pagination,
+          total: data.pagination.total,
+          hasMore: data.pagination.hasMore,
+        });
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -69,20 +100,32 @@ const KosanPage = () => {
     };
 
     fetchData();
-  }, [searchTerm, selectedKecamatan, minHarga, maxHarga, sortOption]);
+  }, [searchTerm, selectedKecamatan, minHarga, maxHarga, sortOption, pagination.offset, pagination.limit]);
 
-  // Toggle pilihan kecamatan
-  const toggleKecamatan = (kecamatan: string) => {
-    setSelectedKecamatan((prev) => (prev.includes(kecamatan) ? prev.filter((k) => k !== kecamatan) : [...prev, kecamatan]));
-  };
-
-  // Reset semua filter
+  // Reset semua filter dan reset ke halaman pertama
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedKecamatan([]);
     setMinHarga("");
     setMaxHarga("");
     setSortOption("default");
+    setPagination((prev) => ({ ...prev, offset: 0 }));
+  };
+
+  // Pindah ke halaman berikutnya
+  const goToNextPage = () => {
+    setPagination((prev) => ({
+      ...prev,
+      offset: prev.offset + prev.limit,
+    }));
+  };
+
+  // Kembali ke halaman sebelumnya
+  const goToPrevPage = () => {
+    setPagination((prev) => ({
+      ...prev,
+      offset: Math.max(0, prev.offset - prev.limit),
+    }));
   };
 
   // Format harga untuk display
@@ -94,6 +137,10 @@ const KosanPage = () => {
     }).format(harga);
   };
 
+  // Hitung halaman saat ini
+  const currentPage = Math.floor(pagination.offset / pagination.limit) + 1;
+  const totalPages = Math.ceil(pagination.total / pagination.limit);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <nav className="mb-4 text-sm">
@@ -102,7 +149,7 @@ const KosanPage = () => {
             Beranda
           </Link>
           <li>&gt;</li>
-          <Link href="/kosan" className="font-semibold text-gray-900cursor-pointer">
+          <Link href="/kosan" className="font-semibold text-gray-900 cursor-pointer">
             Kosan
           </Link>
         </ol>
@@ -181,7 +228,7 @@ const KosanPage = () => {
       {!loading && (
         <div className="mb-4">
           <p className="text-gray-600">
-            Ditemukan <span className="font-semibold">{filteredKosan.length}</span> kosan
+            Menampilkan <span className="font-semibold">{kosanData.length}</span> dari <span className="font-semibold">{pagination.total}</span> kosan
             {searchTerm && ` untuk "${searchTerm}"`}
           </p>
         </div>
@@ -189,7 +236,7 @@ const KosanPage = () => {
 
       {/* Kosan List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {!loading && filteredKosan.length === 0 && (
+        {!loading && kosanData.length === 0 && (
           <div className="col-span-full text-center py-12">
             <p className="text-xl text-gray-500">Tidak ada kosan yang ditemukan</p>
             <button onClick={resetFilters} className="mt-4 text-blue-600 hover:text-blue-800 underline">
@@ -198,7 +245,7 @@ const KosanPage = () => {
           </div>
         )}
 
-        {filteredKosan.map((kos) => (
+        {kosanData.map((kos) => (
           <div key={kos.id} className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
             {/* Foto Utama */}
             <Link href={`/kosan/${kos.id}`}>
@@ -240,23 +287,31 @@ const KosanPage = () => {
                   <p className="text-sm text-gray-500">{new Date(kos.createdAt).toLocaleDateString("id-ID")}</p>
                 </div>
               </div>
-
-              <button
-                onClick={() => {
-                  const formattedNumber = kos.noWhatsapp.replace(/\D/g, "");
-                  window.open(`https://wa.me/${formattedNumber}`, "_blank");
-                }}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center justify-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-                Chat Pemilik
-              </button>
             </Link>
+
+            <WhatsAppButton title="Hubungi Pemilik" noWhatsapp={kos.noWhatsapp} kosanUrl={`/kosan/${kos.id}`} />
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && pagination.total > 0 && (
+        <div className="flex justify-center mt-8">
+          <div className="flex items-center gap-4">
+            <button onClick={goToPrevPage} disabled={pagination.offset === 0} className={`px-4 py-2 rounded-md ${pagination.offset === 0 ? "bg-gray-200 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white"}`}>
+              Sebelumnya
+            </button>
+
+            <span className="text-gray-700">
+              Halaman {currentPage} dari {totalPages}
+            </span>
+
+            <button onClick={goToNextPage} disabled={!pagination.hasMore} className={`px-4 py-2 rounded-md ${!pagination.hasMore ? "bg-gray-200 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white"}`}>
+              Berikutnya
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Facebook, Heart, Instagram, MapPin, Star, Twitter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Facebook, Instagram, MapPin, Star, Twitter } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,14 +30,14 @@ export default function Home() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/datakos?limit=10");
+        const res = await fetch("/api/datakos?limit=6");
 
         if (!res.ok) {
           throw new Error("Failed to fetch data");
         }
 
         const data = await res.json();
-        setKosanData(data);
+        setKosanData(data.data);
       } catch (error) {
         setError(error instanceof Error ? error.message : "An error occurred");
       } finally {
@@ -122,14 +122,16 @@ export default function Home() {
       {/* Featured Kosan Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-12">
+          <div className=" items-center mb-4">
             <div>
               <h2 className="text-3xl font-bold text-gray-900">Kosan Terpopuler</h2>
               <p className="text-gray-600 mt-2">Temukan kosan terbaik dengan fasilitas lengkap</p>
             </div>
-            <Link href="/kosan" className="text-blue-600 hover:text-blue-800 font-medium">
-              Lihat Semua →
-            </Link>
+            <div className="mt-8 flex justify-end">
+              <Link href="/kosan" className="border p-2 rounded-md text-blue-600 hover:text-blue-800 font-medium text-xs">
+                Lihat Semua →
+              </Link>
+            </div>
           </div>
 
           {loading && (
@@ -160,9 +162,9 @@ export default function Home() {
                         <span className="text-gray-500">Tidak ada gambar</span>
                       </div>
                     )}
-                    <div className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md">
+                    {/* <div className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md">
                       <Heart className="text-gray-500 hover:text-red-500 cursor-pointer" />
-                    </div>
+                    </div> */}
                     <div className="absolute bottom-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">{formatHarga(kosan.hargaPerBulan)}/bln</div>
                   </div>
 

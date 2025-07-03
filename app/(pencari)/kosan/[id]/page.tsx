@@ -1,5 +1,6 @@
 "use client";
 
+import WhatsAppButton from "@/components/wabutton";
 import { CalendarDays, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -89,11 +90,15 @@ export default function KosanDetailPage() {
       {/* Breadcrumb */}
       <nav className="mb-4 text-sm">
         <ol className="flex space-x-2 items-center">
-          <Link  href="/" className="text-indigo-600 hover:text-indigo-800 cursor-pointer">Beranda</Link >
-          <li >&gt;</li >
-          <Link href="/kosan"  className="text-indigo-600 hover:text-indigo-800 cursor-pointer">Kosan</Link >
-          <li >&gt;</li>
-          <li  className="font-semibold text-gray-900 truncate max-w-xs">{kosan.nama}</li >
+          <Link href="/" className="text-indigo-600 hover:text-indigo-800 cursor-pointer">
+            Beranda
+          </Link>
+          <li>&gt;</li>
+          <Link href="/kosan" className="text-indigo-600 hover:text-indigo-800 cursor-pointer">
+            Kosan
+          </Link>
+          <li>&gt;</li>
+          <li className="font-semibold text-gray-900 truncate max-w-xs">{kosan.nama}</li>
         </ol>
       </nav>
 
@@ -139,7 +144,6 @@ export default function KosanDetailPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">{kosan.nama}</h1>
-              
             </div>
             <div className={`px-3 py-1 rounded-full text-sm font-medium ${kosan.tersedia ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{kosan.tersedia ? "Tersedia" : "Terisi"}</div>
           </div>
@@ -154,10 +158,7 @@ export default function KosanDetailPage() {
           <div className="border-t border-gray-200 pt-4">
             <h3 className="font-medium mb-2">Kontak Pemilik</h3>
             <div className="flex items-center justify-between">
-             
-              <a href={`https://wa.me/${kosan.pemilik.noWhatsapp}`} target="_blank" rel="noopener noreferrer" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
-                <span>Hubungi via WA</span>
-              </a>
+              <WhatsAppButton title="Hubungi" noWhatsapp={kosan.pemilik.noWhatsapp} kosanUrl={`/kosan/${kosan.id}`} />
             </div>
           </div>
         </div>
